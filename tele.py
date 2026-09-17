@@ -507,39 +507,3 @@ async def ask_ai_vision(user_id, image_b64, user_text):
         return r
 
     return "⚠ Не могу разглядеть. Попробуй позже."
-
-# === КОМАНДЫ ===
-async def start(update, ctx):
-    if not update.message: return
-    name = update.effective_user.first_name or "смертный"
-    await update.message.reply_text(f"О, {name}. Привет. Чего хотел?")
-
-async def reset(update, ctx):
-    if not update.message: return
-    histories.pop(update.effective_user.id, None)
-    recent_replies.pop(update.effective_user.id, None)
-    save_memory()
-    await update.message.reply_text("Всё, забыла. С чистого листа.")
-
-async def help_cmd(update, ctx):
-    if not update.message: return
-    await update.message.reply_text(
-        "/start — начать\n/reset — стереть память\n/help — справка\n\n"
-        "Пиши текст, кидай картинки и стикеры."
-    )
-
-async def handle_photo(update, ctx):
-    if not update.message or not update.message.photo: return
-    user_id = update.effective_user.id
-    caption = update.message.caption or "Что тут у тебя?"
-    await ctx.bot.send_chat_action(chat_id=update.effective_chat.id, action="typing")
-    try:
-        f = await ctx.bot.get_file(update.message.photo[-1].file_id)
-        b = await f.download_as_bytearray()
-        b64 = base64.b64encode(b).decode("utf-8")
-        reply = await ask_ai_vision(user_id, b64, caption)
-        await update.message.reply_text(reply)
-    except Exception as e:
-        await update.message.reply_text(f"⚠ Фото: {e}")
-
-async def handle_st
